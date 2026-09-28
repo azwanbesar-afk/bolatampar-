@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Interaktif Bola Tampar - Google Theme</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Google Sans / Roboto / Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        // Custom Google Palette for Tailwind config extension
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'google-blue': { DEFAULT: '#1a73e8', hover: '#1557b0', light: '#e8f0fe' },
+                        'google-red': { DEFAULT: '#ea4335', hover: '#d93025', light: '#fce8e6' },
+                        'google-yellow': { DEFAULT: '#fbbc04', hover: '#f9ab00', light: '#fef7e0' },
+                        'google-green': { DEFAULT: '#34a853', hover: '#188038', light: '#e6f4ea' },
+                        'google-gray': { 50: '#f8f9fa', 100: '#f1f3f4', 200: '#e8eaed', 300: '#dadce0', 500: '#5f6368', 700: '#3c4043', 900: '#202124' }
+                    },
+                    fontFamily: {
+                        sans: ['Google Sans', 'Roboto', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Google Material Card Styling */
+        body {
+            background-color: #f8f9fa;
+            color: #202124;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            touch-action: manipulation;
+        }
+        .google-card {
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.1), 0 4px 8px 3px rgba(60,64,67,0.05);
+            border-radius: 16px;
+        }
+        .google-card-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .google-card-hover:hover {
+            box-shadow: 0 2px 6px 2px rgba(60,64,67,0.15), 0 8px 12px 4px rgba(60,64,67,0.1);
+        }
+        /* Custom Slider Styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Google Clean App Bar -->
+    <header class="bg-white border-b border-google-gray-300 sticky top-0 z-30 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-google-blue-light text-google-blue p-2.5 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-volleyball text-2xl animate-spin-slow"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1 font-bold text-xl md:text-2xl tracking-tight">
+                        <span class="text-google-blue">G</span>
+                        <span class="text-google-red">o</span>
+                        <span class="text-google-yellow">o</span>
+                        <span class="text-google-blue">g</span>
+                        <span class="text-google-green">l</span>
+                        <span class="text-google-red">e</span>
+                        <span class="text-google-gray-900 ml-1">Volley Lab</span>
+                    </div>
+                    <p class="text-xs text-google-gray-500 font-medium hidden sm:block">Modul Interaktif Pendidikan Jasmani & Kesehatan (PJK) - Tahun 10</p>
+                </div>
+            </div>
+
+            <!-- Global Scoreboard Pill -->
+            <div class="flex items-center gap-2.5 text-xs md:text-sm font-medium">
+                <div class="bg-google-yellow-light text-google-gray-900 border border-google-yellow px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-trophy text-google-yellow"></i>
+                    <span>Skor: <strong id="total-score" class="text-google-gray-900 text-base font-bold">0</strong></span>
+                </div>
+                <div class="bg-google-green-light text-google-green-hover border border-google-green px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>Ketepatan: <strong id="accuracy-rate" class="text-base font-bold">0%</strong></span>
+                </div>
+                <button id="btn-reset-all" onclick="resetEntireSession()" class="bg-google-gray-100 hover:bg-google-gray-200 text-google-gray-700 px-3 py-1.5 rounded-full text-xs font-semibold transition border border-google-gray-300">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Mula Semula
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full p-3 md:p-6 flex-1 flex flex-col gap-5">
+
+        <!-- Stage Navigation Tabs (Google Material Pills) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-white p-2 rounded-2xl border border-google-gray-300 shadow-sm">
+            <button id="tab-mod-1" onclick="switchMode(1)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-blue text-white shadow-sm">
+                <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
+                <span>Servis Sasaran</span>
+            </button>
+            <button id="tab-mod-2" onclick="switchMode(2)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-gray-100 text-google-gray-700 hover:bg-google-gray-200">
+                <span class="w-5 h-5 rounded-full bg-google-gray-300 flex items-center justify-center text-xs">2</span>
+                <span>Menyangga (Dig)</span>
+            </button>
+            <button id="tab-mod-3" onclick="switchMode(3)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-gray-100 text-google-gray-700 hover:bg-google-gray-200">
+                <span class="w-5 h-5 rounded-full bg-google-gray-300 flex items-center justify-center text-xs">3</span>
+                <span>Mengumpan (Set)</span>
+            </button>
+            <button id="tab-mod-4" onclick="switchMode(4)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-gray-100 text-google-gray-700 hover:bg-google-gray-200">
+                <span class="w-5 h-5 rounded-full bg-google-gray-300 flex items-center justify-center text-xs">4</span>
+                <span>Merejam (Spike)</span>
+            </button>
+        </div>
+
+        <!-- Simulation Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+
+            <!-- Simulation Canvas Container (Left/Top 8 cols) -->
+            <div class="lg:col-span-8 flex flex-col google-card overflow-hidden relative">
+                <!-- Top Canvas Info Banner -->
+                <div class="bg-google-gray-50 px-5 py-3 border-b border-google-gray-300 flex justify-between items-center text-xs md:text-sm">
+                    <div class="flex items-center gap-2">
+                        <span id="current-stage-badge" class="px-3 py-1 rounded-full bg-google-blue-light text-google-blue font-bold border border-google-blue/30">Mod 1: Servis</span>
+                        <span id="stage-objective" class="text-google-gray-700 font-medium hidden sm:inline">Hantar bola melepasi jaring ke zon sasaran lawan.</span>
+                    </div>
+                    <div class="text-google-gray-500 font-medium">
+                        Percubaan: <span id="attempt-counter" class="text-google-gray-900 font-bold">0</span> / 5
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="relative flex-1 min-h-[340px] md:min-h-[420px] bg-white flex items-center justify-center overflow-hidden">
+                    <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    
+                    <!-- Tactical Quiz Modal Overlay (Google Yellow / Blue Styling) -->
+                    <div id="quiz-overlay" class="absolute inset-0 bg-google-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-20">
+                        <div class="bg-white border-2 border-google-yellow p-6 rounded-2xl max-w-md w-full shadow-2xl text-center space-y-4 transform transition-all">
+                            <div class="w-12 h-12 bg-google-yellow-light text-google-gray-900 rounded-full flex items-center justify-center mx-auto text-xl border border-google-yellow">
+                                <i class="fa-solid fa-lightbulb text-google-yellow"></i>
+                            </div>
+                            <h3 id="quiz-title" class="font-bold text-lg text-google-gray-900">Cabaran Situasi Permainan</h3>
+                            <p id="quiz-question" class="text-google-gray-700 text-sm leading-relaxed">Soalan situasi akan dipaparkan di sini...</p>
+                            <div id="quiz-options" class="grid grid-cols-1 gap-2.5 pt-2">
+                                <!-- Options rendered via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toast Feedback Badge -->
+                    <div id="feedback-badge" class="absolute top-4 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg border hidden transition-all duration-300 z-10 text-center">
+                        <!-- Dynamic Feedback Message -->
+                    </div>
+                </div>
+
+                <!-- Canvas Control Panel (Sliders & Action Buttons) -->
+                <div class="p-4 bg-google-gray-50 border-t border-google-gray-300 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full md:w-auto flex-1">
+                        <!-- Angle Control -->
+                        <div class="space-y-1 bg-white p-2.5 rounded-xl border border-google-gray-300">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-google-gray-700"><i class="fa-solid fa-compass mr-1 text-google-blue"></i> Sudut Pukulan:</span>
+                                <span id="angle-val" class="text-google-blue font-extrabold">45°</span>
+                            </div>
+                            <input type="range" id="angle-slider" min="10" max="80" value="45" class="w-full h-2 bg-google-gray-200 rounded-lg appearance-none cursor-pointer accent-google-blue" oninput="updateControls()">
+                        </div>
+                        <!-- Power Control -->
+                        <div class="space-y-1 bg-white p-2.5 rounded-xl border border-google-gray-300">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-google-gray-700"><i class="fa-solid fa-gauge-high mr-1 text-google-red"></i> Daya / Kuasa:</span>
+                                <span id="power-val" class="text-google-red font-extrabold">65%</span>
+                            </div>
+                            <input type="range" id="power-slider" min="20" max="100" value="65" class="w-full h-2 bg-google-gray-200 rounded-lg appearance-none cursor-pointer accent-google-red" oninput="updateControls()">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button id="btn-hint" onclick="showHint()" class="bg-google-yellow-light hover:bg-google-yellow/20 text-google-gray-900 p-3 rounded-2xl border border-google-yellow transition shadow-sm" title="Petunjuk">
+                            <i class="fa-solid fa-lightbulb text-google-yellow text-base"></i>
+                        </button>
+                        <button id="btn-retry" onclick="resetBallState()" class="bg-white hover:bg-google-gray-100 text-google-gray-700 p-3 rounded-2xl border border-google-gray-300 transition shadow-sm" title="Cuba Lagi">
+                            <i class="fa-solid fa-rotate-left text-google-blue text-base"></i>
+                        </button>
+                        <button id="btn-shoot" onclick="executeStrike()" class="bg-google-green hover:bg-google-green-hover text-white font-bold px-6 py-3 rounded-2xl shadow-md transition flex items-center justify-center gap-2 flex-1 md:flex-initial">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span id="btn-shoot-text">HANTAR BOLA</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information & Guidance Sidebar (Right 4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-5">
+                
+                <!-- Stage Guide Card -->
+                <div class="google-card p-5 space-y-3">
+                    <div class="flex items-center justify-between border-b border-google-gray-200 pb-2.5">
+                        <h2 id="guide-title" class="font-bold text-base text-google-blue flex items-center gap-2">
+                            <i class="fa-solid fa-book-open"></i> Panduan Kemahiran
+                        </h2>
+                        <span id="guide-badge" class="text-xs bg-google-blue-light text-google-blue px-2.5 py-0.5 rounded-full font-bold">Tingkatan 4</span>
+                    </div>
+                    <p id="guide-desc" class="text-xs text-google-gray-700 leading-relaxed">
+                        Servis ialah tindakan memulakan permainan. Laraskan sudut dan kekuatan supaya bola melintasi jaring dan mendarat di zon sasaran pihak lawan.
+                    </p>
+                    <div class="bg-google-blue-light/50 p-3 rounded-xl border border-google-blue/20 space-y-1.5">
+                        <div class="text-xs font-bold text-google-blue flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Tips Biomekanik:
+                        </div>
+                        <ul id="guide-tips" class="text-xs text-google-gray-700 space-y-1 list-disc pl-4">
+                            <li>Gunakan sudut 35°-45° untuk jarak optimum.</li>
+                            <li>Kawal daya supaya bola tidak keluar dari garisan.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Live Performance Card -->
+                <div class="google-card p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm text-google-gray-900 mb-3 flex items-center gap-2 border-b border-google-gray-200 pb-2">
+                            <i class="fa-solid fa-chart-line text-google-green"></i> Prestasi Mod Ini
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="bg-google-gray-50 p-3 rounded-xl border border-google-gray-300 text-center">
+                                <span class="text-xs text-google-gray-500 block font-medium">Mata Mod</span>
+                                <span id="stage-score" class="text-2xl font-black text-google-blue">0</span>
+                            </div>
+                            <div class="bg-google-gray-50 p-3 rounded-xl border border-google-gray-300 text-center">
+                                <span class="text-xs text-google-gray-500 block font-medium">Berjaya</span>
+                                <span id="stage-success-count" class="text-2xl font-black text-google-green">0 / 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Log -->
+                        <div class="space-y-1.5">
+                            <span class="text-xs font-bold text-google-gray-700">Catatan Maklum Balas:</span>
+                            <div id="feedback-log" class="bg-google-gray-50 p-3 rounded-xl border border-google-gray-300 h-28 overflow-y-auto text-xs text-google-gray-500 space-y-1">
+                                <p class="text-google-gray-500 italic">Selesaikan cabaran untuk melihat ulasan teknikal di sini.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Stage Button -->
+                    <button id="btn-next-stage" onclick="nextStage()" class="w-full bg-google-blue hover:bg-google-blue-hover text-white font-bold py-3 px-4 rounded-xl transition shadow-md flex items-center justify-center gap-2 mt-4">
+                        <span>Mod Seterusnya</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Summary Performance Modal (Google Theme) -->
+    <div id="summary-modal" class="fixed inset-0 bg-google-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white border border-google-gray-300 p-6 md:p-8 rounded-3xl max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-google-yellow-light text-google-yellow rounded-full flex items-center justify-center mx-auto text-3xl border border-google-yellow shadow-md">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h2 class="font-bold text-2xl md:text-3xl text-google-gray-900">Laporan Performance Bola Tampar</h2>
+                <p class="text-google-gray-500 text-xs md:text-sm">Ringkasan Pencapaian & Analisis Kemahiran Murid (Tahun 10)</p>
+            </div>
+
+            <!-- Score Stats Overview -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-google-blue-light p-3 md:p-4 rounded-2xl border border-google-blue/30 text-center">
+                    <span class="text-xs text-google-gray-700 font-medium block">Jumlah Skor</span>
+                    <span id="summary-total-score" class="text-2xl md:text-3xl font-black text-google-blue">0</span>
+                </div>
+                <div class="bg-google-green-light p-3 md:p-4 rounded-2xl border border-google-green/30 text-center">
+                    <span class="text-xs text-google-gray-700 font-medium block">Peratus Ketepatan</span>
+                    <span id="summary-accuracy" class="text-2xl md:text-3xl font-black text-google-green">0%</span>
+                </div>
+                <div class="bg-google-yellow-light p-3 md:p-4 rounded-2xl border border-google-yellow/30 text-center">
+                    <span class="text-xs text-google-gray-700 font-medium block">Penguasaan</span>
+                    <span id="summary-grade" class="text-lg md:text-2xl font-black text-google-gray-900">Baik</span>
+                </div>
+            </div>
+
+            <!-- Breakdown by Skill -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-google-gray-900 border-b border-google-gray-200 pb-1">Analisis Penguasaan Kemahiran</h3>
+                <div id="skills-breakdown" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+                    <!-- Dynamic breakdown cards -->
+                </div>
+            </div>
+
+            <!-- Strengths and Areas for Improvement -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-google-green-light border border-google-green/30 p-4 rounded-2xl space-y-1.5">
+                    <span class="font-bold text-google-green flex items-center gap-1.5">
+                        <i class="fa-solid fa-thumbs-up"></i> Kekuatan Utama:
+                    </span>
+                    <p id="summary-strengths" class="text-google-gray-700 leading-relaxed">
+                        Memahami konsep trajektori dan pengawalan daya semasa melakukan hantaran.
+                    </p>
+                </div>
+                <div class="bg-google-red-light border border-google-red/30 p-4 rounded-2xl space-y-1.5">
+                    <span class="font-bold text-google-red flex items-center gap-1.5">
+                        <i class="fa-solid fa-wrench"></i> Cadangan Penambahbaikan:
+                    </span>
+                    <p id="summary-improvements" class="text-google-gray-700 leading-relaxed">
+                        Latih pengawalan sudut pukulan agar bola menyangga tidak terlalu jauh melangkaui garisan sasaran.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center gap-3 pt-2">
+                <button onclick="resetEntireSession()" class="flex-1 bg-google-gray-100 hover:bg-google-gray-200 text-google-gray-700 font-bold py-3 rounded-2xl transition border border-google-gray-300">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Main Semula
+                </button>
+                <button onclick="closeSummaryModal()" class="flex-1 bg-google-blue hover:bg-google-blue-hover text-white font-bold py-3 rounded-2xl shadow-md transition">
+                    Tutup & Semak
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-google-gray-300 py-3 px-4 text-center text-xs text-google-gray-500">
+        Google Material Theme • Modul Pembelajaran Digital Pendidikan Jasmani & Kesehatan (PJK) Tahun 10
+    </footer>
+
+    <script>
+        /* Global State Variables */
+        let currentMode = 1;
+        let totalScore = 0;
+        let totalAttempts = 0;
+        let totalSuccesses = 0;
+
+        // Stage-specific tracking
+        const stageData = {
+            1: { attempts: 0, successes: 0, score: 0, name: "Servis", targetZone: { xMin: 0.68, xMax: 0.88 } },
+            2: { attempts: 0, successes: 0, score: 0, name: "Menyangga", targetZone: { xMin: 0.32, xMax: 0.45 } },
+            3: { attempts: 0, successes: 0, score: 0, name: "Mengumpan", targetZone: { xMin: 0.42, xMax: 0.49 } },
+            4: { attempts: 0, successes: 0, score: 0, name: "Merejam", targetZone: { xMin: 0.70, xMax: 0.92 } }
+        };
+
+        // Tactical Quiz Data per Mode
+        const quizQuestions = {
+            1: {
+                question: "Pihak lawan bersedia rapat di jaring. Apakah strategi servis terbaik untuk menguji pertahanan mereka?",
+                options: [
+                    { text: "Servis tinggi dan jauh ke zon belakang gelanggang lawan", correct: true },
+                    { text: "Servis perlahan terus ke tangan blocker", correct: false },
+                    { text: "Servis laju keluar garisan belakang", correct: false }
+                ],
+                explanation: "Servis menyasar zon belakang memaksa pertahanan bergerak ke belakang dan menyukarkan serangan balas."
+            },
+            2: {
+                question: "Bola rejaman lawan datang laju dan rendah ke kawasan anda. Kemahiran manakah yang paling sesuai diguna?",
+                options: [
+                    { text: "Mengumpan dengan dua belah tangan di atas kepala", correct: false },
+                    { text: "Menyangga (Digging) dengan mengunci siku dan menyerap daya", correct: true },
+                    { text: "Merejam bola dari paras pinggang", correct: false }
+                ],
+                explanation: "Menyangga adalah teknik terbaik meredam dan mengawal bola laju yang datang di bawah paras bahu."
+            },
+            3: {
+                question: "Penyangga telah melambungkan bola ke kawasan tengah. Sebagai pengumpan (setter), ke mana hantaran patut diarahkan?",
+                options: [
+                    { text: "Hantar melambung tinggi ke zon rejam penyerang di tepi jaring", correct: true },
+                    { text: "Tolaknya terus ke luar gelanggang lawan", correct: false },
+                    { text: "Hantar rendah ke bawah jaring", correct: false }
+                ],
+                explanation: "Umpanan tinggi membolehkan perejam melompat dan menentukan sudut rejaman tajam."
+            },
+            4: {
+                question: "Blocker pihak lawan melompat tinggi di tengah jaring. Di manakah sasaran rejaman paling bijak?",
+                options: [
+                    { text: "Rejam terus ke tangan blocker", correct: false },
+                    { text: "Rejam mengiring ke ruang kosong gelanggang lawan yang terbuka", correct: true },
+                    { text: "Pukul bola perlahan ke bawah jaring sendiri", correct: false }
+                ],
+                explanation: "Mencari ruang kosong (angle spike) mengelak sekatan lawan dan meningkatkan kadar kemenangan mata."
+            }
+        };
+
+        // Canvas & Physics Variables
+        let canvas, ctx;
+        let animationFrameId = null;
+        let isSimulating = false;
+
+        // Ball Physics Parameters
+        let ball = {
+            x: 100,
+            y: 300,
+            vx: 0,
+            vy: 0,
+            radius: 12,
+            gravity: 0.38,
+            bounce: 0.6,
+            isGrounded: false
+        };
+
+        // Court Constants
+        const NET_HEIGHT_RATIO = 0.35;
+        const COURT_Y_RATIO = 0.78;
+
+        /* Window Onload */
+        window.onload = function() {
+            canvas = document.getElementById('simCanvas');
+            ctx = canvas.getContext('2d');
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            setupCanvasInteractions();
+            loadStage(1);
+            drawScene();
+        };
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            if (!isSimulating) {
+                resetBallPosition();
+                drawScene();
+            }
+        }
+
+        function switchMode(modeNum) {
+            if (isSimulating) return;
+            currentMode = modeNum;
+            loadStage(modeNum);
+        }
+
+        function loadStage(mode) {
+            currentMode = mode;
+
+            // Update Tab Active States with Google Palette
+            for (let i = 1; i <= 4; i++) {
+                const tab = document.getElementById(`tab-mod-${i}`);
+                if (i === mode) {
+                    tab.className = "tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-blue text-white shadow-sm";
+                } else {
+                    tab.className = "tab-btn px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all bg-google-gray-100 text-google-gray-700 hover:bg-google-gray-200";
+                }
+            }
+
+            // Update Text Guidance
+            const stageBadge = document.getElementById('current-stage-badge');
+            const stageObj = document.getElementById('stage-objective');
+            const guideTitle = document.getElementById('guide-title');
+            const guideDesc = document.getElementById('guide-desc');
+            const guideTips = document.getElementById('guide-tips');
+
+            if (mode === 1) {
+                stageBadge.innerText = "Mod 1: Servis";
+                stageObj.innerText = "Hantar bola melepasi jaring ke zon sasaran lawan di garisan belakang.";
+                guideTitle.innerHTML = `<i class="fa-solid fa-hand-fist"></i> Servis (Serving)`;
+                guideDesc.innerText = "Servis memulakan rali. Kawal sudut dan daya pukulan supaya bola melintasi jaring dan mendarat dalam zon sasaran.";
+                guideTips.innerHTML = `
+                    <li>Gunakan sudut 35°-45° untuk jarak landai.</li>
+                    <li>Daya 60%-75% diperlukan untuk melepasi jaring.</li>
+                `;
+            } else if (mode === 2) {
+                stageBadge.innerText = "Mod 2: Menyangga";
+                stageObj.innerText = "Sambut bola datang yang rendah dan hantar tepat ke kawasan pengumpan.";
+                guideTitle.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Menyangga (Digging)`;
+                guideDesc.innerText = "Menyangga digunakan untuk menyerap daya rejaman/servis lawan. Rapatkan kedua-dua lengan untuk permukaan rata.";
+                guideTips.innerHTML = `
+                    <li>Gunakan sudut tinggi (55°-70°) untuk melambungkan bola.</li>
+                    <li>Daya sederhana (40%-55%) mencukupi untuk mengawal bola.</li>
+                `;
+            } else if (mode === 3) {
+                stageBadge.innerText = "Mod 3: Mengumpan";
+                stageObj.innerText = "Melambungkan bola mengunci pergerakan udara tepat ke zon melompat perejam.";
+                guideTitle.innerHTML = `<i class="fa-solid fa-hands-holding"></i> Mengumpan (Setting)`;
+                guideDesc.innerText = "Mengumpan menggunakan jejari tangan untuk memberi hantaran lembut dan tinggi di depan jaring untuk diserang.";
+                guideTips.innerHTML = `
+                    <li>Pelarasan sudut tegak (65°-75°) sangat disyorkan.</li>
+                    <li>Gunakan kawalan daya lembut (35%-50%).</li>
+                `;
+            } else if (mode === 4) {
+                stageBadge.innerText = "Mod 4: Merejam";
+                stageObj.innerText = "Lompat dan rejam bola melintasi blok lawan ke kawasan kosong.";
+                guideTitle.innerHTML = `<i class="fa-solid fa-bolt"></i> Merejam (Spiking)`;
+                guideDesc.innerText = "Merejam ialah pukulan serangan keras ke bawah dari aras tinggi untuk mematikan bola di gelanggang lawan.";
+                guideTips.innerHTML = `
+                    <li>Sudut rendahan (15°-30°) menghasilkan rejaman tajam.</li>
+                    <li>Gunakan daya tinggi (75%-95%) untuk mengelak pertahanan.</li>
+                `;
+            }
+
+            // Controls Slider Presets
+            const angleSlider = document.getElementById('angle-slider');
+            const powerSlider = document.getElementById('power-slider');
+            if (mode === 1) { angleSlider.value = 40; powerSlider.value = 65; }
+            if (mode === 2) { angleSlider.value = 60; powerSlider.value = 50; }
+            if (mode === 3) { angleSlider.value = 70; powerSlider.value = 45; }
+            if (mode === 4) { angleSlider.value = 25; powerSlider.value = 85; }
+
+            updateControls();
+            updateStageStatsUI();
+            triggerQuizModal(mode);
+        }
+
+        function triggerQuizModal(mode) {
+            const quiz = quizQuestions[mode];
+            document.getElementById('quiz-question').innerText = quiz.question;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            quiz.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-xl border border-google-gray-300 bg-google-gray-50 hover:bg-google-blue-light hover:border-google-blue text-xs text-google-gray-900 font-medium transition flex items-center justify-between group";
+                btn.innerHTML = `
+                    <span>${opt.text}</span>
+                    <i class="fa-solid fa-chevron-right text-google-gray-500 group-hover:text-google-blue"></i>
+                `;
+                btn.onclick = () => handleQuizAnswer(opt.correct, quiz.explanation);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-overlay').classList.remove('hidden');
+        }
+
+        function handleQuizAnswer(isCorrect, explanation) {
+            const overlay = document.getElementById('quiz-overlay');
+            if (isCorrect) {
+                showToast("Jawapan Tepat! " + explanation, "success");
+                overlay.classList.add('hidden');
+                resetBallState();
+            } else {
+                showToast("Kurang Tepat. Sila semak strategi semula!", "error");
+            }
+        }
+
+        function updateControls() {
+            const angle = document.getElementById('angle-slider').value;
+            const power = document.getElementById('power-slider').value;
+
+            document.getElementById('angle-val').innerText = `${angle}°`;
+            document.getElementById('power-val').innerText = `${power}%`;
+
+            if (!isSimulating) {
+                drawScene();
+            }
+        }
+
+        function resetBallPosition() {
+            const courtY = canvas.height * COURT_Y_RATIO;
+            
+            if (currentMode === 1) { // Servis
+                ball.x = canvas.width * 0.08;
+                ball.y = courtY - 30;
+            } else if (currentMode === 2) { // Menyangga
+                ball.x = canvas.width * 0.15;
+                ball.y = courtY - 20;
+            } else if (currentMode === 3) { // Mengumpan
+                ball.x = canvas.width * 0.35;
+                ball.y = courtY - 25;
+            } else if (currentMode === 4) { // Merejam
+                ball.x = canvas.width * 0.42;
+                ball.y = courtY - 110;
+            }
+
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.isGrounded = false;
+        }
+
+        function resetBallState() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            isSimulating = false;
+            resetBallPosition();
+            drawScene();
+        }
+
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const courtY = h * COURT_Y_RATIO;
+            const netX = w * 0.5;
+            const netHeight = h * NET_HEIGHT_RATIO;
+            const netTopY = courtY - netHeight;
+
+            // 1. Google Clean Soft Background Gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, courtY);
+            skyGrad.addColorStop(0, '#ffffff');
+            skyGrad.addColorStop(1, '#f1f3f4');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, courtY);
+
+            // 2. Google Blue Court Floor
+            ctx.fillStyle = '#e8f0fe'; // Google Blue Light floor
+            ctx.fillRect(0, courtY, w, h - courtY);
+
+            // Court Line Markings
+            ctx.strokeStyle = '#1a73e8'; // Google Blue
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(w * 0.05, courtY);
+            ctx.lineTo(w * 0.95, courtY);
+            ctx.stroke();
+
+            // Attack Line (3m line)
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(26, 115, 232, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(w * 0.35, courtY); ctx.lineTo(w * 0.35, h);
+            ctx.moveTo(w * 0.65, courtY); ctx.lineTo(w * 0.65, h);
+            ctx.stroke();
+
+            // 3. Target Zone (Google Red Tint)
+            const targetInfo = stageData[currentMode].targetZone;
+            const tzX1 = w * targetInfo.xMin;
+            const tzX2 = w * targetInfo.xMax;
+
+            ctx.fillStyle = 'rgba(234, 67, 53, 0.2)';
+            ctx.fillRect(tzX1, courtY - 6, tzX2 - tzX1, 10);
+            ctx.strokeStyle = '#ea4335';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(tzX1, courtY - 6, tzX2 - tzX1, 10);
+
+            // Target Label
+            ctx.fillStyle = '#d93025';
+            ctx.font = 'bold 11px Google Sans, Roboto';
+            ctx.textAlign = 'center';
+            ctx.fillText("ZON SASARAN", (tzX1 + tzX2) / 2, courtY + 22);
+
+            // 4. Volleyball Net (Google Gray/Blue accents)
+            ctx.strokeStyle = '#5f6368';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(netX, courtY);
+            ctx.lineTo(netX, netTopY);
+            ctx.stroke();
+
+            // Net Mesh
+            ctx.strokeStyle = 'rgba(60, 64, 67, 0.2)';
+            ctx.lineWidth = 1;
+            for (let ny = netTopY; ny < courtY; ny += 8) {
+                ctx.beginPath();
+                ctx.moveTo(netX - 6, ny); ctx.lineTo(netX + 6, ny);
+                ctx.stroke();
+            }
+
+            // Net Top Tape
+            ctx.fillStyle = '#1a73e8';
+            ctx.fillRect(netX - 6, netTopY - 4, 12, 6);
+
+            // Antennae (Google Red)
+            ctx.fillStyle = '#ea4335';
+            ctx.fillRect(netX - 2, netTopY - 35, 4, 35);
+
+            // 5. Draw Stick Players
+            drawPlayers(w, courtY, netX);
+
+            // 6. Trajectory Prediction Line
+            if (!isSimulating) {
+                drawTrajectory(w, h, courtY);
+            }
+
+            // 7. Draw Ball
+            drawBall();
+        }
+
+        function drawTrajectory(w, h, courtY) {
+            const angleDeg = parseFloat(document.getElementById('angle-slider').value);
+            const powerPct = parseFloat(document.getElementById('power-slider').value);
+
+            const angleRad = angleDeg * (Math.PI / 180);
+            const speed = (powerPct / 100) * 19 + 4;
+
+            let simX = ball.x;
+            let simY = ball.y;
+            let simVx = Math.cos(angleRad) * speed;
+            let simVy = -Math.sin(angleRad) * speed;
+
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#1a73e8'; // Google Blue line
+            ctx.lineWidth = 2.5;
+            ctx.moveTo(simX, simY);
+
+            for (let step = 0; step < 40; step++) {
+                simX += simVx;
+                simY += simVy;
+                simVy += ball.gravity;
+
+                ctx.lineTo(simX, simY);
+
+                if (simY >= courtY || simX >= w) break;
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawPlayers(w, courtY, netX) {
+            const playerAColor = '#1a73e8'; // Google Blue
+            const playerBColor = '#ea4335'; // Google Red
+
+            if (currentMode === 1) {
+                drawStickPlayer(w * 0.08, courtY, playerAColor, "Pencetus Servis");
+                drawStickPlayer(w * 0.78, courtY, playerBColor, "Pertahanan Lawan");
+            } else if (currentMode === 2) {
+                drawStickPlayer(w * 0.15, courtY, playerAColor, "Penyangga");
+                drawStickPlayer(w * 0.38, courtY, '#34a853', "Pengumpan");
+            } else if (currentMode === 3) {
+                drawStickPlayer(w * 0.35, courtY, playerAColor, "Pengumpan");
+                drawStickPlayer(w * 0.44, courtY - 20, '#fbbc04', "Perejam");
+            } else if (currentMode === 4) {
+                drawStickPlayer(w * 0.42, courtY - 60, playerAColor, "Perejam");
+                drawStickPlayer(w * 0.54, courtY, playerBColor, "Blocker Lawan");
+            }
+        }
+
+        function drawStickPlayer(x, groundY, color, label) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(x, groundY - 50, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Torso
+            ctx.beginPath();
+            ctx.moveTo(x, groundY - 43);
+            ctx.lineTo(x, groundY - 20);
+            ctx.stroke();
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(x, groundY - 20); ctx.lineTo(x - 8, groundY);
+            ctx.moveTo(x, groundY - 20); ctx.lineTo(x + 8, groundY);
+            ctx.stroke();
+
+            // Arms
+            ctx.beginPath();
+            ctx.moveTo(x, groundY - 38); ctx.lineTo(x + 10, groundY - 48);
+            ctx.moveTo(x, groundY - 38); ctx.lineTo(x - 6, groundY - 48);
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#3c4043';
+            ctx.font = '500 10px Google Sans, Roboto';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, groundY - 62);
+
+            ctx.restore();
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#fbbc04'; // Google Yellow ball
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#1a73e8'; // Google Blue outline
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(60, 64, 67, 0.3)';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius * 0.6, 0, Math.PI);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function setupCanvasInteractions() {
+            let isDragging = false;
+
+            const handleStart = (e) => {
+                if (isSimulating) return;
+                isDragging = true;
+            };
+
+            const handleMove = (e) => {
+                if (!isDragging || isSimulating) return;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const mouseX = clientX - rect.left;
+                const mouseY = clientY - rect.top;
+
+                const dx = mouseX - ball.x;
+                const dy = ball.y - mouseY;
+
+                if (dx > 0 && dy > 0) {
+                    let calculatedAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                    calculatedAngle = Math.min(Math.max(calculatedAngle, 10), 80);
+                    document.getElementById('angle-slider').value = Math.round(calculatedAngle);
+                    updateControls();
+                }
+            };
+
+            const handleEnd = () => { isDragging = false; };
+
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+
+            canvas.addEventListener('touchstart', handleStart);
+            canvas.addEventListener('touchmove', handleMove);
+            window.addEventListener('touchend', handleEnd);
+        }
+
+        function executeStrike() {
+            if (isSimulating) return;
+
+            const angleDeg = parseFloat(document.getElementById('angle-slider').value);
+            const powerPct = parseFloat(document.getElementById('power-slider').value);
+
+            const angleRad = angleDeg * (Math.PI / 180);
+            const speed = (powerPct / 100) * 19 + 4;
+
+            ball.vx = Math.cos(angleRad) * speed;
+            ball.vy = -Math.sin(angleRad) * speed;
+
+            isSimulating = true;
+            stageData[currentMode].attempts++;
+            totalAttempts++;
+
+            animatePhysics();
+        }
+
+        function animatePhysics() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const courtY = h * COURT_Y_RATIO;
+            const netX = w * 0.5;
+            const netHeight = h * NET_HEIGHT_RATIO;
+            const netTopY = courtY - netHeight;
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            ball.vy += ball.gravity;
+
+            let stopped = false;
+            let resultMessage = "";
+            let isSuccess = false;
+
+            // 1. Collision with Net
+            if (Math.abs(ball.x - netX) < ball.radius + 3 && ball.y >= netTopY && ball.y <= courtY) {
+                ball.vx = -ball.vx * 0.3;
+                resultMessage = "Bola tersangkut di jaring! Sudut atau daya terlalu rendah.";
+                stopped = true;
+            }
+
+            // 2. Collision with Ground
+            if (ball.y + ball.radius >= courtY) {
+                ball.y = courtY - ball.radius;
+                stopped = true;
+
+                const target = stageData[currentMode].targetZone;
+                const landingPct = ball.x / w;
+
+                if (landingPct >= target.xMin && landingPct <= target.xMax) {
+                    isSuccess = true;
+                    if (currentMode === 1) resultMessage = "Servis Cemerlang! Bola mendarat tepat di zon sasaran.";
+                    if (currentMode === 2) resultMessage = "Sanggaan Mantap! Bola tepat ke kawasan pengumpan.";
+                    if (currentMode === 3) resultMessage = "Umpanan Sempurna! Bola tinggi mendarat di zon rejam.";
+                    if (currentMode === 4) resultMessage = "Rejaman Padu! Bola mematikan ruang kosong lawan.";
+                } else if (landingPct > 0.95) {
+                    resultMessage = "Pukulan Terlalu Kuat! Bola keluar dari garisan gelanggang (Out).";
+                } else if (landingPct < 0.5 && currentMode === 1) {
+                    resultMessage = "Bola tidak melepasi garisan jaring lawan.";
+                } else {
+                    resultMessage = "Hantaran sipi! Bola tidak mendarat di zon sasaran yang ditetapkan.";
+                }
+            }
+
+            // 3. Out of Bounds
+            if (ball.x > w + 20 || ball.x < -20) {
+                stopped = true;
+                resultMessage = "Bola keluar dari kawasan permainan.";
+            }
+
+            drawScene();
+
+            if (!stopped) {
+                animationFrameId = requestAnimationFrame(animatePhysics);
+            } else {
+                handleStrikeOutcome(isSuccess, resultMessage);
+            }
+        }
+
+        function handleStrikeOutcome(isSuccess, message) {
+            isSimulating = false;
+
+            const st = stageData[currentMode];
+            if (isSuccess) {
+                st.successes++;
+                st.score += 20;
+                totalScore += 20;
+                totalSuccesses++;
+                showToast(message, "success");
+            } else {
+                showToast(message, "error");
+            }
+
+            // Log
+            const logBox = document.getElementById('feedback-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `p-1.5 rounded-lg border text-xs ${isSuccess ? 'bg-google-green-light border-google-green/30 text-google-green-hover' : 'bg-google-red-light border-google-red/30 text-google-red-hover'}`;
+            logEntry.innerHTML = `<strong>P${st.attempts}:</strong> ${message}`;
+            logBox.prepend(logEntry);
+
+            updateStageStatsUI();
+
+            if (st.attempts >= 5) {
+                setTimeout(() => {
+                    showToast(`Sesi Mod ${currentMode} Selesai! Anda boleh ke mod seterusnya.`, "info");
+                }, 1200);
+            }
+        }
+
+        function updateStageStatsUI() {
+            const st = stageData[currentMode];
+            document.getElementById('attempt-counter').innerText = st.attempts;
+            document.getElementById('stage-score').innerText = st.score;
+            document.getElementById('stage-success-count').innerText = `${st.successes} / ${st.attempts}`;
+
+            document.getElementById('total-score').innerText = totalScore;
+            const accuracy = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+            document.getElementById('accuracy-rate').innerText = `${accuracy}%`;
+        }
+
+        function showHint() {
+            let hintMsg = "";
+            if (currentMode === 1) hintMsg = "Petunjuk Servis: Tetapkan sudut sekitar 40° dan daya 65% untuk melepasi jaring.";
+            if (currentMode === 2) hintMsg = "Petunjuk Menyangga: Gunakan sudut tinggi (60°) dengan daya 50% untuk melambungkan bola.";
+            if (currentMode === 3) hintMsg = "Petunjuk Mengumpan: Laraskan sudut 70° dengan daya 45% untuk hantaran tinggi.";
+            if (currentMode === 4) hintMsg = "Petunjuk Merejam: Tetapkan sudut rendahan 25° dan daya tinggi 85% untuk rejaman tajam.";
+
+            showToast(hintMsg, "info");
+        }
+
+        function showToast(text, type) {
+            const toast = document.getElementById('feedback-badge');
+            toast.innerText = text;
+
+            if (type === 'success') {
+                toast.className = "absolute top-4 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg border z-30 bg-google-green text-white border-google-green-hover block";
+            } else if (type === 'error') {
+                toast.className = "absolute top-4 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg border z-30 bg-google-red text-white border-google-red-hover block";
+            } else {
+                toast.className = "absolute top-4 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg border z-30 bg-google-blue text-white border-google-blue-hover block";
+            }
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function nextStage() {
+            if (currentMode < 4) {
+                switchMode(currentMode + 1);
+            } else {
+                openSummaryModal();
+            }
+        }
+
+        function openSummaryModal() {
+            document.getElementById('summary-total-score').innerText = totalScore;
+            const accuracy = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+            document.getElementById('summary-accuracy').innerText = `${accuracy}%`;
+
+            let grade = "Memuaskan";
+            if (accuracy >= 80) grade = "Cemerlang";
+            else if (accuracy >= 60) grade = "Baik";
+            document.getElementById('summary-grade').innerText = grade;
+
+            const container = document.getElementById('skills-breakdown');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= 4; i++) {
+                const s = stageData[i];
+                const itemAcc = s.attempts > 0 ? Math.round((s.successes / s.attempts) * 100) : 0;
+                
+                const card = document.createElement('div');
+                card.className = "bg-google-gray-50 p-3 rounded-xl border border-google-gray-300 flex justify-between items-center";
+                card.innerHTML = `
+                    <div>
+                        <span class="font-bold text-google-gray-900 block">${s.name}</span>
+                        <span class="text-google-gray-500 text-[10px]">${s.successes} daripada ${s.attempts} percubaan</span>
+                    </div>
+                    <span class="font-black ${itemAcc >= 60 ? 'text-google-green' : 'text-google-yellow-hover'}">${itemAcc}%</span>
+                `;
+                container.appendChild(card);
+            }
+
+            if (accuracy >= 70) {
+                document.getElementById('summary-strengths').innerText = "Murid menguasai anggaran trajektori bola dan mempunyai pengawalan daya pukulan yang sangat baik merentasi semua kemahiran asas.";
+                document.getElementById('summary-improvements').innerText = "Kekalkan konsistensi teknik servis dan tingkatkan variasi rejaman mengikut sudut sekatan pihak lawan.";
+            } else {
+                document.getElementById('summary-strengths').innerText = "Murid memahami asas teori taktikal dan pemilihan kemahiran yang sesuai mengikut situasi permainan.";
+                document.getElementById('summary-improvements').innerText = "Berikan perhatian kepada kawalan sudut tembakan (elevation angle) dan elakkan penggunaan daya berlebihan semasa menyangga.";
+            }
+
+            document.getElementById('summary-modal').classList.remove('hidden');
+        }
+
+        function closeSummaryModal() {
+            document.getElementById('summary-modal').classList.add('hidden');
+        }
+
+        function resetEntireSession() {
+            totalScore = 0;
+            totalAttempts = 0;
+            totalSuccesses = 0;
+
+            for (let i = 1; i <= 4; i++) {
+                stageData[i].attempts = 0;
+                stageData[i].successes = 0;
+                stageData[i].score = 0;
+            }
+
+            document.getElementById('feedback-log').innerHTML = '<p class="text-google-gray-500 italic">Selesaikan cabaran untuk melihat ulasan teknikal di sini.</p>';
+            closeSummaryModal();
+            switchMode(1);
+        }
+    </script>
+</body>
+</html>
